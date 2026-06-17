@@ -104,10 +104,12 @@ pip install -e .
 Download the released resources from Hugging Face:
 
 EventVLA checkpoints: https://huggingface.co/ganlinyang/EventVLA
+
 RoboTwin-MeM dataset: https://huggingface.co/datasets/ganlinyang/RoboTwin-MeM
 
 We recommend organizing them as follows:
 
+```text
 workspace/
 ├── checkpoints/
 │   └── EventVLA/
@@ -123,6 +125,7 @@ workspace/
     └── RoboTwin-MeM/
         ├── lerobot_2.1/
         └── hdf5/
+```
 
 Use the RoboTwin-MeM checkpoint for RoboTwin-MeM evaluation and the RMBench checkpoint for RMBench evaluation.
 

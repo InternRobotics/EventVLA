@@ -1,0 +1,11 @@
+{
+  "full_description": "Open the covers one by one to observe the objects inside, close it after inspection, then pick up the objects in the observed order.",
+  "schema": "",
+  "preference": "",
+  "seen": [
+    "Open the covers one by one to observe the objects inside, close it after inspection, then pick up the objects in the observed order."
+  ],
+  "unseen": [
+    "Open the covers one by one to observe the objects inside, close it after inspection, then pick up the objects in the observed order."
+  ]
+}

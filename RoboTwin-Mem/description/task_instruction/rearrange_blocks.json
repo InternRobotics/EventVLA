@@ -1,0 +1,11 @@
+{
+  "full_description": "",
+  "schema": "",
+  "preference": "",
+  "seen": [
+    "Move the block between the two mats onto the empty mat, press the button, then move the other block (the one that started on a mat) to the space between the two mats."
+  ],
+  "unseen": [
+    "Move the block between the two mats onto the empty mat, press the button, then move the other block (the one that started on a mat) to the space between the two mats."
+  ]
+}

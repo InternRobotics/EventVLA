@@ -1,0 +1,11 @@
+{
+  "full_description": "",
+  "schema": "",
+  "preference": "",
+  "seen": [
+    "Initially, there is one target object on the shelf and five random objects on the table. Then, a screen obscures the target object. Pick up the corresponding target object from the table and lift it up."
+  ],
+  "unseen": [
+    "Initially, there is one target object on the shelf and five random objects on the table. Then, a screen obscures the target object. Pick up the corresponding target object from the table and lift it up."
+  ]
+}

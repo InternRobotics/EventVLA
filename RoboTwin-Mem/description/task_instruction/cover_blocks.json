@@ -1,0 +1,11 @@
+{
+  "full_description": "",
+  "schema": "",
+  "preference": "",
+  "seen": [
+    "On the table, red, green, and blue blocks are arranged randomly along with three lids. From the current viewpoint, cover the blocks from left to right using the lids, and then uncover them again in the sequence red, green, and blue."
+  ],
+  "unseen": [
+    "On the table, red, green, and blue blocks are arranged randomly along with three lids. From the current viewpoint, cover the blocks from left to right using the lids, and then uncover them again in the sequence red, green, and blue."
+  ]
+}

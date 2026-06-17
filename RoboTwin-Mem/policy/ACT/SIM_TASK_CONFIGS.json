@@ -1,0 +1,172 @@
+{
+    "sim-observe_and_pickup-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-observe_and_pickup/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 250,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-put_back_block-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-put_back_block/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-rearrange_blocks-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-rearrange_blocks/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 700,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-swap_blocks-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-swap_blocks/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1000,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-swap_T-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-swap_T/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 600,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-battery_try-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-battery_try/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1000,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-blocks_ranking_try-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-blocks_ranking_try/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 3500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-cover_blocks-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-cover_blocks/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-press_button-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-press_button/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-pick_the_unhidden_block-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-pick_the_unhidden_block/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1000,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-rearrange_blocks_hard-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-rearrange_blocks_hard/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1200,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-put_back_block_hard-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-put_back_block_hard/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1800,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-find_seal_and_seal_stamp-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-find_seal_and_seal_stamp/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1800,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-pick_objects_in_order-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-pick_objects_in_order/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-reproduce_route-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-reproduce_route/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-cover_blocks_hard-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-cover_blocks_hard/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1700,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    },
+    "sim-press_button_keyframe-demo_clean-50": {
+        "dataset_dir": "./processed_data/sim-press_button_keyframe/demo_clean-50",
+        "num_episodes": 50,
+        "episode_len": 1500,
+        "camera_names": [
+            "cam_high",
+            "cam_right_wrist",
+            "cam_left_wrist"
+        ]
+    }
+}

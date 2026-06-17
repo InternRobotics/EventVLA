@@ -1,0 +1,11 @@
+{
+  "full_description": "Move the center red block to the four blue pads in a random order, returning it to the center. Then use the outside red block to repeat the same pad order.",
+  "schema": "",
+  "preference": "",
+  "seen": [
+    "Move the center red block to the four blue pads in a random order, returning it to the center. Then use the outside red block to repeat the same pad order."
+  ],
+  "unseen": [
+    "Move the center red block to the four blue pads in a random order, returning it to the center. Then use the outside red block to repeat the same pad order."
+  ]
+}
