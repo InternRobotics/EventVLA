@@ -13,17 +13,12 @@ EventVLA is a vision-language-action framework for long-horizon robotic manipula
 
 This repository is released together with **RoboTwin-Mem**, a memory-dependent manipulation benchmark built on RoboTwin 2.0.
 
-## To Do List
 
-EventVLA Repository Progress
-├── Done
-│   ├── [x] RoboTwin-MeM benchmark training and evaluation
-│   └── [x] EventVLA training and evaluation code in simulation
-│       ├── [x] RMBench benchmark
-│       └── [x] RoboTwin-MeM benchmark
-└── To Do
-    ├── [ ] Real-world inference and evaluation code
-    └── [ ] Real-world fine-tuned model
+## 📆 To Do List
+- [x] RoboTwin-MeM benchmark training and evaluation.
+- [x] EventVLA training and evaluation code in simulation (RMBench and RoboTwin-MeM).
+- [ ] Real-world inference and evaluation code.
+- [ ] Real-world fine-tuned model.
 
 
 <p align="center">
