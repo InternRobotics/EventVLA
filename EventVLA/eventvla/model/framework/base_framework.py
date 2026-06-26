@@ -84,7 +84,8 @@ class baseframework(PreTrainedModel):
 
         config = dict_to_namespace(model_config)
         model_config = config
-        model_config.trainer.pretrained_checkpoint = None
+        if hasattr(model_config, "trainer"):
+            model_config.trainer.pretrained_checkpoint = None
         # FrameworkModel = cls(config=model_config, **kwargs) # TODO find cls by config
         from eventvla.model.framework import build_framework
 
@@ -98,6 +99,11 @@ class baseframework(PreTrainedModel):
             model_state_dict = load_file(str(pretrained_checkpoint))
         else:
             model_state_dict = torch.load(pretrained_checkpoint, map_location="cpu")
+        if isinstance(model_state_dict, dict):
+            if "module" in model_state_dict and isinstance(model_state_dict["module"], dict):
+                model_state_dict = model_state_dict["module"]
+            elif "state_dict" in model_state_dict and isinstance(model_state_dict["state_dict"], dict):
+                model_state_dict = model_state_dict["state_dict"]
         # logger.info(f"Loading model weights from `{pretrained_checkpoint}`")
         model_state = FrameworkModel.state_dict()
         model_keys = set(model_state.keys())
