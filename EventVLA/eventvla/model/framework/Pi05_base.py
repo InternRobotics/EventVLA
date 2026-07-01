@@ -176,15 +176,24 @@ class Pi05(baseframework):
 
         paligemma_config = config.framework.paligemma_config 
         action_expert_config = config.framework.action_expert_config 
+        paligemma_model_path = getattr(config.framework, "paligemma_model_path", None)
+        paligemma_tokenizer_path = (
+            pathlib.Path(paligemma_model_path) / "tokenizer.model"
+            if paligemma_model_path
+            else None
+        )
         
-        self.tokenizer = PaligemmaTokenizer(config.framework.max_token_len)
+        self.tokenizer = PaligemmaTokenizer(
+            config.framework.max_token_len,
+            tokenizer_path=str(paligemma_tokenizer_path) if paligemma_tokenizer_path else None,
+        )
 
         self.paligemma_with_expert = PaliGemmaWithExpertModel(
             paligemma_config,
             action_expert_config,
             use_adarms=[False, True] if self.pi05 else [False, False],
             precision='bfloat16' if config.framework.precision == 'bfloat16' else 'float32',
-            pretrained_model_path=getattr(config.framework, "paligemma_model_path", None),
+            pretrained_model_path=paligemma_model_path,
         )
 
         self.action_in_proj = nn.Linear(config.framework.action_dim, action_expert_config.width, dtype=self.proj_dtype)

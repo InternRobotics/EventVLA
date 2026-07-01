@@ -84,6 +84,16 @@ class baseframework(PreTrainedModel):
 
         config = dict_to_namespace(model_config)
         model_config = config
+        framework_overrides = {
+            key: value
+            for key, value in kwargs.items()
+            if value is not None and key in {"paligemma_model_path"}
+        }
+        if framework_overrides:
+            if not hasattr(model_config, "framework"):
+                raise ValueError("Cannot apply framework overrides because config is missing `framework`.")
+            for key, value in framework_overrides.items():
+                setattr(model_config.framework, key, value)
         if hasattr(model_config, "trainer"):
             model_config.trainer.pretrained_checkpoint = None
         # FrameworkModel = cls(config=model_config, **kwargs) # TODO find cls by config

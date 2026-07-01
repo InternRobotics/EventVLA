@@ -3,17 +3,69 @@
 # Implemented by [Jinhui YE / HKUST University] in [2025].
 
 import asyncio
+import inspect
 import logging
 import traceback
 import time
 
+import numpy as np
 import torch
+from PIL import Image
 
 import websockets.asyncio.server
 import websockets.frames
 
 # from openpi_client import base_policy as _base_policy
 from . import msgpack_numpy
+from . import image_tools
+
+
+def _mask_value_to_bool(value) -> bool:
+    arr = np.asarray(value)
+    if arr.size == 0:
+        return False
+    return bool(arr.reshape(-1)[0])
+
+
+def _sample_images_mask(images_mask, sample_idx: int, view_count: int) -> list[bool]:
+    if images_mask is None:
+        return [True] * view_count
+    try:
+        sample_mask = images_mask[sample_idx]
+    except Exception:
+        return [True] * view_count
+
+    if isinstance(sample_mask, np.ndarray):
+        values = sample_mask.reshape(-1).tolist()
+    elif isinstance(sample_mask, (list, tuple)):
+        values = list(sample_mask)
+    else:
+        values = [sample_mask]
+
+    return [
+        _mask_value_to_bool(values[idx]) if idx < len(values) else True
+        for idx in range(view_count)
+    ]
+
+
+def _blank_like_view(view):
+    if isinstance(view, list):
+        return [_blank_like_view(frame) for frame in view]
+    if isinstance(view, tuple):
+        return tuple(_blank_like_view(frame) for frame in view)
+    if isinstance(view, Image.Image):
+        return Image.new(view.mode, view.size, 0)
+    return np.zeros_like(np.asarray(view))
+
+
+def _to_pil_nested(images):
+    if isinstance(images, np.ndarray) and images.ndim > 3:
+        return [_to_pil_nested(item) for item in images]
+    if isinstance(images, list):
+        return [_to_pil_nested(item) for item in images]
+    if isinstance(images, tuple):
+        return tuple(_to_pil_nested(item) for item in images)
+    return image_tools.to_pil_preserve(images)
 
 class WebsocketPolicyServer:
     """Serves a policy using the websocket protocol. See websocket_client_policy.py for a client implementation.
@@ -98,7 +150,7 @@ class WebsocketPolicyServer:
         """
         req_id = msg.get("request_id", "default")
         mtype = msg.get("type", "infer")          # default = infer
-        msg       # when no explicit payload, treat top-level as payload
+        payload = msg.get("payload", msg)         # when no explicit payload, treat top-level as payload
 
         # ping
         if mtype == "ping":
@@ -132,7 +184,7 @@ class WebsocketPolicyServer:
         # infer --> framework.predict_action
         elif mtype == "infer" or mtype == "predict_action":
             # Basic payload sanity
-            if not isinstance(msg, dict):
+            if not isinstance(payload, dict):
                 return {
                     "status": "error",
                     "ok": False,
@@ -141,8 +193,8 @@ class WebsocketPolicyServer:
                     "error": {"message": "Payload must be a dict", "payload_type": str(type(payload))}
                 }
             try:
-
-                ouput_dict = self._policy.predict_action(**msg)
+                payload = self._prepare_predict_payload(payload)
+                ouput_dict = self._policy.predict_action(**payload)
             except Exception as e:
                 logging.exception("Policy inference error (request_id=%s)", req_id)
                 logging.exception(e)
@@ -175,6 +227,61 @@ class WebsocketPolicyServer:
                 "request_id": req_id,
                 "error": {"message": f"Unsupported message type '{mtype}'"},
             }
+
+    def _policy_uses_batch_images(self) -> bool:
+        try:
+            return "batch_images" in inspect.signature(self._policy.predict_action).parameters
+        except (TypeError, ValueError):
+            return False
+
+    def _prepare_predict_payload(self, payload: dict) -> dict:
+        payload = dict(payload)
+        if self._policy_uses_batch_images() and "batch_images" not in payload and "examples" in payload:
+            examples = list(payload["examples"])
+            payload["batch_images"] = [example["image"] for example in examples]
+            payload["instructions"] = [example["lang"] for example in examples]
+            if "raw_examples" not in payload:
+                payload["raw_examples"] = examples
+            states = [example.get("state", None) for example in examples]
+            if all(state is not None for state in states):
+                payload["state"] = states
+
+        if self._policy_uses_batch_images() and "batch_images" in payload:
+            payload["batch_images"], payload["images_mask"] = self._prepare_batch_images_and_masks(
+                payload["batch_images"],
+                payload.get("images_mask"),
+            )
+            payload["run_eval"] = True
+        return payload
+
+    def _prepare_batch_images_and_masks(self, batch_images, images_mask):
+        batch_images = _to_pil_nested(batch_images)
+        expected_views = len(getattr(self._policy, "anchor_image_keys", ())) or 3
+
+        padded_images = []
+        padded_masks = []
+        for sample_idx, sample in enumerate(batch_images):
+            if isinstance(sample, (list, tuple)):
+                sample = list(sample)
+            else:
+                sample = [sample]
+            view_count = len(sample)
+            if view_count > expected_views:
+                raise ValueError(f"Expected at most {expected_views} views, got {view_count}")
+
+            sample_mask = _sample_images_mask(images_mask, sample_idx, view_count)
+            pad_count = expected_views - view_count
+            if pad_count:
+                if sample:
+                    blank = _blank_like_view(sample[0])
+                else:
+                    blank = np.zeros((224, 224, 3), dtype=np.uint8)
+                sample.extend([blank for _ in range(pad_count)])
+                sample_mask.extend([False] * pad_count)
+
+            padded_images.append(sample)
+            padded_masks.append(sample_mask)
+        return padded_images, padded_masks
 
 
 if __name__ == "__main__":

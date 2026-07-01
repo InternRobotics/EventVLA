@@ -18,6 +18,7 @@ def main(args) -> None:
 
     vla = baseframework.from_pretrained( # TODO should auto detect framework from model path
         args.ckpt_path,
+        paligemma_model_path=args.paligemma_model_path,
     )
 
     if args.use_bf16: # False
@@ -43,6 +44,12 @@ def main(args) -> None:
 def build_argparser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ckpt_path", type=str, default="Qwen/Qwen2.5-VL-3B-Instruct")
+    parser.add_argument(
+        "--paligemma_model_path",
+        type=str,
+        default=None,
+        help="Local HuggingFace PaliGemma model directory. Defaults to /mnt/inspurfs/efm_t/yuxiqian/paligemma-3b-pt-224.",
+    )
     parser.add_argument("--port", type=int, default=10093)
     parser.add_argument("--use_bf16", action="store_true")
     parser.add_argument("--idle_timeout" , type=int, default=1800, help="Idle timeout in seconds, -1 means never close")

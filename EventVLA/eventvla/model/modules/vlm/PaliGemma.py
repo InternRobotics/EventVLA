@@ -36,6 +36,7 @@ def _resolve_paligemma_model_path(vlm_config, explicit_path: str | None = None) 
         _cfg_get(vlm_config, "pretrained_model_path"),
         _cfg_get(vlm_config, "model_path"),
         _cfg_get(vlm_config, "hf_model_id"),
+        "/mnt/inspurfs/efm_t/yuxiqian/paligemma-3b-pt-224",
     )
     for candidate in candidates:
         if candidate:
