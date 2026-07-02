@@ -2,9 +2,24 @@
 
 **EventVLA: Event-Driven Visual Evidence Memory for Long-Horizon Vision-Language-Action Policies**
 
+## Quick Links
+
+- 🌐 **Project Page**: [EventVLA Project Page](https://ganlin-yang.github.io/EventVLA.github.io/)
+- 🤗 **Models**: [Hugging Face - EventVLA](https://huggingface.co/ganlinyang/EventVLA/tree/main)
+- 📦 **Datasets**: [Hugging Face - RoboTwin-MeM](https://huggingface.co/datasets/ganlinyang/RoboTwin-MeM)
+- 📄 **Paper**: [arXiv 2606.20092](https://arxiv.org/pdf/2606.20092)
+
 EventVLA is a vision-language-action framework for long-horizon robotic manipulation. It introduces event-driven visual evidence memory: the policy detects task-relevant events, stores key visual evidence as raw keyframe images, and reuses this memory during action prediction.
 
 This repository is released together with **RoboTwin-Mem**, a memory-dependent manipulation benchmark built on RoboTwin 2.0.
+
+
+## 📆 To Do List
+- [x] RoboTwin-MeM benchmark training and evaluation.
+- [x] EventVLA training and evaluation code in simulation (RMBench and RoboTwin-MeM).
+- [ ] Real-world inference and evaluation code.
+- [ ] Real-world fine-tuned model.
+
 
 <p align="center">
   <img src="assets/Overview.png" width="95%" alt="EventVLA Overview">
@@ -285,7 +300,16 @@ steps_<global_step>_model.safetensors
 
 ## Citation
 
-The EventVLA citation will be added after the paper is released.
+If you find this project useful, please cite:
+
+```bibtex
+@article{yang2026eventvla,
+  title={EventVLA: Event-Driven Visual Evidence Memory for Long-Horizon Vision-Language-Action Policies},
+  author={Yang, Ganlin and Tu, Zhangzheng and Yang, Yuqiang and Mao, Sitong and Dong, Junyi and Chen, Tianxing and Peng, Jiaqi and Xiong, Jing and Cao, Jiafei and Dai, Jifeng and others},
+  journal={arXiv preprint arXiv:2606.20092},
+  year={2026}
+}
+```
 
 This project is built upon the following open-source projects:
 
