@@ -92,6 +92,9 @@ def build_dataloader(cfg, dataset_py="lerobot_datasets_oxe"):  # TODO now here o
                 sampling_interval=sampling_interval,
                 action_horizon=action_horizon,
                 balance_dataset_step_counts=balance_task_step_counts,
+                preserve_episode_batch_slots=_cfg_bool(
+                    vla_dataset_cfg.get("preserve_episode_batch_slots", False)
+                ),
                 rank=rank,
                 num_replicas=world_size,
             )

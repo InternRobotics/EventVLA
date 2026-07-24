@@ -102,6 +102,9 @@ datasets:
     action_mode: abs
     sequential_step_sampling: False
     use_sequential_episode_sampler: true
+    # Runtime predicted keyframe memory is indexed by batch slot, so keep each
+    # episode in the same slot across consecutive batches.
+    preserve_episode_batch_slots: true
     shuffle_trajectories: true
     balance_task_step_counts: true
     num_workers: 4
