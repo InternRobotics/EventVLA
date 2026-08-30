@@ -42,6 +42,7 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
         sampling_interval: int = 1,
         action_horizon: int = 1,
         balance_dataset_step_counts: bool = False,
+        preserve_episode_batch_slots: bool = False,
         rank: int | None = None,
         num_replicas: int | None = None,
     ) -> None:
@@ -52,6 +53,7 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
         self.sampling_interval = max(1, int(sampling_interval))
         self.action_horizon = max(1, int(action_horizon))
         self.balance_dataset_step_counts = bool(balance_dataset_step_counts)
+        self.preserve_episode_batch_slots = bool(preserve_episode_batch_slots)
 
         self.epoch = 0
         if num_replicas is None:
@@ -366,6 +368,14 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
     def _compute_target_num_batches(self, trajectories: List[Tuple[int, object, int]]) -> int:
         # Deterministic across all ranks (no collectives): all ranks have the same
         # trajectory list + same shuffling seed, and rank assignment is via slicing.
+        if self.preserve_episode_batch_slots:
+            batches_per_rank = []
+            for rank in range(self.num_replicas):
+                rank_pool = trajectories[rank :: self.num_replicas]
+                _, slot_step_counts = self._assign_trajectories_to_slots(rank_pool)
+                batches_per_rank.append(max(slot_step_counts, default=0))
+            return int(max(batches_per_rank, default=0))
+
         steps_per_rank: List[int] = []
         for r in range(self.num_replicas):
             rank_pool = trajectories[r :: self.num_replicas]
@@ -381,6 +391,39 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
             return 0
         # Use max + local cycling to keep all ranks at identical batch count.
         return int(np.ceil(max(steps_per_rank) / self.batch_size))
+
+    def _assign_trajectories_to_slots(
+        self,
+        trajectories: List[Tuple[int, object, int]],
+    ) -> Tuple[List[List[Tuple[int, object, int]]], List[int]]:
+        """Assign complete episodes to persistent, approximately balanced slots."""
+        slot_trajectories: List[List[Tuple[int, object, int]]] = [
+            [] for _ in range(self.batch_size)
+        ]
+        slot_step_counts = [0 for _ in range(self.batch_size)]
+
+        for trajectory in trajectories:
+            dataset_index, trajectory_id, trajectory_length = trajectory
+            sampled_steps = self._count_sampled_steps(
+                dataset_index=int(dataset_index),
+                trajectory_id=trajectory_id,
+                trajectory_length=int(trajectory_length),
+            )
+            if sampled_steps <= 0:
+                continue
+
+            slot_index = min(range(self.batch_size), key=slot_step_counts.__getitem__)
+            slot_trajectories[slot_index].append(trajectory)
+            slot_step_counts[slot_index] += int(sampled_steps)
+
+        return slot_trajectories, slot_step_counts
+
+    def _build_slot_streams(
+        self,
+        trajectories: List[Tuple[int, object, int]],
+    ) -> List[List[EpisodeSampleIndex]]:
+        slot_trajectories, _ = self._assign_trajectories_to_slots(trajectories)
+        return [self._build_flat_step_stream(slot_pool) for slot_pool in slot_trajectories]
 
     def __len__(self) -> int:
         trajectories = self._build_epoch_trajectory_pool()
@@ -421,6 +464,10 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
     def __iter__(self) -> Iterator[List[EpisodeSampleIndex]]:
         all_trajectories = self._build_epoch_trajectory_pool()
         trajectories = all_trajectories[self.rank :: self.num_replicas]
+        if self.preserve_episode_batch_slots:
+            yield from self._iter_persistent_slot_batches(all_trajectories, trajectories)
+            return
+
         local_stream = self._build_flat_step_stream(trajectories)
 
         target_num_batches = self._compute_target_num_batches(all_trajectories)
@@ -444,3 +491,29 @@ class SequentialEpisodeBatchSampler(Sampler[List[EpisodeSampleIndex]]):
 
         for i in range(0, total_needed, self.batch_size):
             yield local_stream[i : i + self.batch_size]
+
+    def _iter_persistent_slot_batches(
+        self,
+        all_trajectories: List[Tuple[int, object, int]],
+        trajectories: List[Tuple[int, object, int]],
+    ) -> Iterator[List[EpisodeSampleIndex]]:
+        slot_streams = self._build_slot_streams(trajectories)
+        target_num_batches = self._compute_target_num_batches(all_trajectories)
+        if target_num_batches <= 0:
+            return
+
+        fallback_stream = next((stream for stream in slot_streams if stream), None)
+        if fallback_stream is None:
+            fallback_stream = next(
+                (stream for stream in self._build_slot_streams(all_trajectories) if stream),
+                None,
+            )
+        if fallback_stream is None:
+            return
+
+        resolved_streams = [stream if stream else fallback_stream for stream in slot_streams]
+        for batch_index in range(target_num_batches):
+            yield [
+                stream[batch_index % len(stream)]
+                for stream in resolved_streams
+            ]
