@@ -28,7 +28,8 @@ EventVLA/examples/**/eval_batch/logs/
 EventVLA/examples/**/eval_files/keyframe/
 
 # RoboTwin-Mem generated data and evaluation outputs
-RoboTwin-Mem/assets/
+RoboTwin-Mem/assets/*
+!RoboTwin-Mem/assets/_download.py
 RoboTwin-Mem/eval_result/
 RoboTwin-Mem/lerobotdata/
 RoboTwin-Mem/eval_video/

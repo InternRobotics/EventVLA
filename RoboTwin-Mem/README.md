@@ -31,6 +31,8 @@ To download the assets, run the following command. If you encounter any rate-lim
 bash script/_download_assets.sh
 ```
 
+Please use the RoboTwin-Mem asset bundle downloaded by this script. RoboTwin-Mem includes additional task-specific objects that are not included in the RoboTwin 2.0 asset bundle.
+
 ## 3. Download 
 
 Please run the following command to download all data.

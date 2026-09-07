@@ -1,0 +1,17 @@
+observe_and_pickup: 250
+put_back_block: 500
+rearrange_blocks: 700
+swap_blocks: 1000
+swap_T: 600
+battery_try: 1000
+blocks_ranking_try: 3500
+cover_blocks: 1500
+press_button: 1500
+pick_the_unhidden_block: 1000
+rearrange_blocks_hard: 1200
+put_back_block_hard: 1800
+find_seal_and_seal_stamp: 1800
+pick_objects_in_order: 1500
+reproduce_route: 1500
+cover_blocks_hard: 1700
+press_button_keyframe: 1500
