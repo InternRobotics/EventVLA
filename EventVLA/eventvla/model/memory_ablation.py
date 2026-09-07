@@ -5,11 +5,12 @@ from dataclasses import dataclass
 
 CANONICAL_MEMORY_ABLATION_MODES = (
     "pure_image_keyframe_memory",
+    "raw_anchors_only",
 )
 
 KEYFRAME_IMAGE_MEMORY_MODES = frozenset({"pure_image_keyframe_memory"})
 TOKEN_MEMORY_MODES = frozenset()
-MEMORYLESS_MODES = frozenset()
+MEMORYLESS_MODES = frozenset({"raw_anchors_only"})
 CURRENT_FRAME_ONLY_MEMORYLESS_MODES = frozenset()
 
 MEMORY_WRITE_POLICY_DISABLED = "disabled"
@@ -40,6 +41,19 @@ _PROFILE_BY_MODE = {
         qwen_memory_injection_mode="pure_image_keyframe_memory",
         enable_memory_buffer=False,
         enable_keyframe_image_memory=True,
+        provide_teacher_commit_images=False,
+        force_memory_write_current_for_event_commit=False,
+        disable_current_frame_keyframe_write_in_eval=True,
+        use_teacher_future_frame_write_in_train=False,
+        memory_write_policy=MEMORY_WRITE_POLICY_DISABLED,
+        temporal_absolute_indices=DEFAULT_TEMPORAL_ABSOLUTE_INDICES,
+        temporal_anchor_deltas=DEFAULT_TEMPORAL_ANCHOR_DELTAS,
+    ),
+    "raw_anchors_only": MemoryAblationProfile(
+        name="raw_anchors_only",
+        qwen_memory_injection_mode="raw_anchors_only",
+        enable_memory_buffer=False,
+        enable_keyframe_image_memory=False,
         provide_teacher_commit_images=False,
         force_memory_write_current_for_event_commit=False,
         disable_current_frame_keyframe_write_in_eval=True,
@@ -137,7 +151,8 @@ def resolve_memory_ablation_profile(cfg) -> MemoryAblationProfile:
     if configured_mode is None:
         raise ValueError(
             "Missing `framework.memory_ablation_mode`. "
-            "EventVLA requires pure_image_keyframe_memory."
+            "EventVLA requires one of: "
+            f"{', '.join(CANONICAL_MEMORY_ABLATION_MODES)}."
         )
     return get_memory_ablation_profile(configured_mode)
 

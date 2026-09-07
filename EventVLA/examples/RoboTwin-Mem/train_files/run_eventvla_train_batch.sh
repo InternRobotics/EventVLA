@@ -34,13 +34,13 @@ cd "${REPO_ROOT}"
 
 Framework_name=${FRAMEWORK_NAME:-EventVLA}
 freeze_module_list=${FREEZE_MODULE_LIST:-""}
-base_vlm=${BASE_VLM:-/mnt/inspurfs/efm_t/yangganlin/models/download_models/Qwen3-VL-4B-Instruct}
+base_vlm=${BASE_VLM:-/path/to/Qwen3-VL-4B-Instruct}
 config_yaml=${CONFIG_YAML:-./examples/RoboTwin-Mem/train_files/eventvla_robotwin_mem.yaml}
 deepspeed_config=${DEEPSPEED_CONFIG:-eventvla/config/deepseeds/deepspeed_zero2.yaml}
 train_entry=${TRAIN_ENTRY:-eventvla/training/train_eventvla.py}
 run_root_dir=${RUN_ROOT_DIR:-./results/Checkpoints}
-data_root_dir=${1:-${ROBOTWIN_MEM_DATA_ROOT:-/mnt/inspurfs/efm_t/yangganlin/workspace_tzz/final/RoboTwin-Mem/lerobotdata}}
-data_mix=${DATA_MIX:-robotwin_mem8}
+data_root_dir=${1:-${ROBOTWIN_MEM_DATA_ROOT:-/path/to/RoboTwin-MeM/lerobot_2.1}}
+data_mix=${DATA_MIX:-robotwin_mem}
 memory_ablation_mode=${MEMORY_ABLATION_MODE:-pure_image_keyframe_memory}
 resolved_profile=${memory_ablation_mode}
 keyframe_train_memory_source=${KEYFRAME_TRAIN_MEMORY_SOURCE:-teacher_to_predict}

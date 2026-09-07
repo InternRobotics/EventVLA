@@ -72,7 +72,14 @@ def build_dataloader(cfg, dataset_py="lerobot_datasets_oxe"):  # TODO now here o
         vla_dataset = get_vla_dataset(data_cfg=vla_dataset_cfg)
 
         num_workers = int(vla_dataset_cfg.get("num_workers", 4))
-        use_sequential_episode_sampler = bool(vla_dataset_cfg.get("use_sequential_episode_sampler", False))
+        use_sequential_episode_sampler = _cfg_bool(
+            vla_dataset_cfg.get("use_sequential_episode_sampler", True)
+        )
+        if not use_sequential_episode_sampler:
+            raise ValueError(
+                "VLA training requires use_sequential_episode_sampler=true; "
+                "SequentialEpisodeBatchSampler is the only supported sampler."
+            )
         sampling_interval = int(vla_dataset_cfg.get("sampling_interval", 1))
         balance_task_step_counts = _cfg_bool(
             vla_dataset_cfg.get(
@@ -83,35 +90,26 @@ def build_dataloader(cfg, dataset_py="lerobot_datasets_oxe"):  # TODO now here o
         action_horizon = _resolve_action_horizon(cfg)
         rank = dist.get_rank() if dist.is_available() and dist.is_initialized() else 0
         world_size = dist.get_world_size() if dist.is_available() and dist.is_initialized() else 1
-        if use_sequential_episode_sampler:
-            batch_sampler = SequentialEpisodeBatchSampler(
-                dataset=vla_dataset,
-                batch_size=int(cfg.datasets.vla_data.per_device_batch_size),
-                shuffle_trajectories=bool(vla_dataset_cfg.get("shuffle_trajectories", False)),
-                seed=int(getattr(cfg, "seed", 42)),
-                sampling_interval=sampling_interval,
-                action_horizon=action_horizon,
-                balance_dataset_step_counts=balance_task_step_counts,
-                preserve_episode_batch_slots=_cfg_bool(
-                    vla_dataset_cfg.get("preserve_episode_batch_slots", False)
-                ),
-                rank=rank,
-                num_replicas=world_size,
-            )
-            vla_train_dataloader = DataLoader(
-                vla_dataset,
-                batch_sampler=batch_sampler,
-                collate_fn=collate_fn,
-                num_workers=num_workers,
-            )
-        else:
-            vla_train_dataloader = DataLoader(
-                vla_dataset,
-                batch_size=cfg.datasets.vla_data.per_device_batch_size,
-                collate_fn=collate_fn,
-                num_workers=num_workers,
-                # shuffle=True
-            )
+        batch_sampler = SequentialEpisodeBatchSampler(
+            dataset=vla_dataset,
+            batch_size=int(cfg.datasets.vla_data.per_device_batch_size),
+            shuffle_trajectories=bool(vla_dataset_cfg.get("shuffle_trajectories", False)),
+            seed=int(getattr(cfg, "seed", 42)),
+            sampling_interval=sampling_interval,
+            action_horizon=action_horizon,
+            balance_dataset_step_counts=balance_task_step_counts,
+            preserve_episode_batch_slots=_cfg_bool(
+                vla_dataset_cfg.get("preserve_episode_batch_slots", True)
+            ),
+            rank=rank,
+            num_replicas=world_size,
+        )
+        vla_train_dataloader = DataLoader(
+            vla_dataset,
+            batch_sampler=batch_sampler,
+            collate_fn=collate_fn,
+            num_workers=num_workers,
+        )
 
         if rank == 0:
 

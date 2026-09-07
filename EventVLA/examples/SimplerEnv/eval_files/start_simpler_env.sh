@@ -2,8 +2,8 @@
 
 echo `which python`
 
-export sim_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/dinoact/bin/python
-export SimplerEnv_PATH=/mnt/petrelfs/share/yejinhui/Projects/SimplerEnv
+export sim_python=/path/to/simplerenv/env/bin/python
+export SimplerEnv_PATH=/path/to/SimplerEnv
 export PYTHONPATH=$(pwd):${PYTHONPATH}
 #### set environment variables #####
 

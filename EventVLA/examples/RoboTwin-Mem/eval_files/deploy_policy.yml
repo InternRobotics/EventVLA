@@ -9,7 +9,11 @@ instruction_type: unseen
 host: "127.0.0.1"
 port: 5840
 # policy_ckpt_path should point to the exact checkpoint you are serving.
-# EventVLA public checkpoints use pure_image_keyframe_memory.
+# Supported checkpoints use pure_image_keyframe_memory or raw_anchors_only:
+#   - EventVLA public checkpoints
+#   - legacy starVLA QwenOFT checkpoints
+# Some legacy RoboTwin checkpoints store stats under "new_embodiment";
+# set UNNORM_KEY=new_embodiment when serving those weights.
 policy_ckpt_path: "/path/to/eventvla/checkpoints/steps_xxxxx_pytorch_model.pt"
 
 unnorm_key: "robotwin_mem"

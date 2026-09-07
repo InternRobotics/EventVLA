@@ -984,7 +984,7 @@ CKPT_MAPPING = {
 
 
 parser = argparse.ArgumentParser()
-model_path = "/mnt/petrelfs/yejinhui/Projects/llavavla/results/Checkpoints/1_need/QwenGR00T/videos/steps_30000_pytorch_model.pt"
+model_path = "/path/to/EventVLA/results/Checkpoints/1_need/QwenGR00T/videos/steps_30000_pytorch_model.pt"
 
 # 获得 文件名字
 model_name = model_path.split("/")[-1]

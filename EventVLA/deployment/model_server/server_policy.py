@@ -48,7 +48,7 @@ def build_argparser():
         "--paligemma_model_path",
         type=str,
         default=None,
-        help="Local HuggingFace PaliGemma model directory. Defaults to /mnt/inspurfs/efm_t/yuxiqian/paligemma-3b-pt-224.",
+        help="Local HuggingFace PaliGemma model directory. Defaults to /path/to/paligemma-3b-pt-224.",
     )
     parser.add_argument("--port", type=int, default=10093)
     parser.add_argument("--use_bf16", action="store_true")

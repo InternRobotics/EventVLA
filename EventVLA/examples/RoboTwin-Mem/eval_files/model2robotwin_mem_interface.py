@@ -2,6 +2,7 @@ import atexit
 import collections
 import json
 import logging
+import math
 import re
 import time
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from collections import deque
 import numpy as np
 import cv2 as cv
 from PIL import Image
+from websockets.exceptions import ConnectionClosed
 
 
 from deployment.model_server.tools.websocket_policy_client import WebsocketClientPolicy
@@ -22,6 +24,7 @@ from eventvla.model.memory_ablation import (
     KEYFRAME_IMAGE_MEMORY_MODES,
     validate_temporal_image_profile,
 )
+from eventvla.model.legacy_compat import normalize_legacy_checkpoint_config
 from eventvla.model.tools import read_mode_config
 
 try:
@@ -61,9 +64,19 @@ class ModelClient:
         keyframe_cluster_timestep_window: Optional[int] = None,
     ) -> None:
 
-        self.client = WebsocketClientPolicy(host, port)
+        self.host = host
+        self.port = port
+        self.client: Optional[WebsocketClientPolicy] = None
         self.policy_setup = policy_setup
         self.model_config, self.norm_stats = read_mode_config(policy_ckpt_path)
+        self.model_config, compat_info = normalize_legacy_checkpoint_config(self.model_config)
+        if compat_info.get("enabled", False):
+            logging.info(
+                "Using legacy %s checkpoint config as %s in RoboTwin-Mem interface: %s",
+                compat_info.get("source_framework_name"),
+                compat_info.get("target_framework_name"),
+                compat_info.get("reason"),
+            )
         self.unnorm_key = self._check_unnorm_key(self.norm_stats, unnorm_key)
         self.vla_data_config = self._nested_get(self.model_config, ("datasets", "vla_data"), {}) or {}
         self.memory_config = self._nested_get(self.model_config, ("framework", "memory_buffer"), {}) or {}
@@ -72,8 +85,8 @@ class ModelClient:
         ).strip().lower()
         if self.memory_ablation_mode not in set(CANONICAL_MEMORY_ABLATION_MODES):
             raise ValueError(
-                "Checkpoint config is missing a canonical framework.memory_ablation_mode. "
-                "Old checkpoint configs are not supported in this branch."
+                "Checkpoint config is missing a supported canonical "
+                f"framework.memory_ablation_mode. Use one of: {sorted(CANONICAL_MEMORY_ABLATION_MODES)}."
             )
         self.qwen_memory_injection_config = self.memory_config.get("qwen_memory_injection", {}) or {}
         self.memory_injection_mode = str(
@@ -92,9 +105,7 @@ class ModelClient:
                 f"framework.memory_buffer.qwen_memory_injection.mode={self.memory_injection_mode}."
             )
         self.uses_keyframe_image_inputs = self._use_keyframe_image_inputs()
-        if not self.uses_keyframe_image_inputs:
-            raise ValueError("EventVLA eval only supports pure_image_keyframe_memory raw image memory.")
-        self.supports_runtime_memory_commits = True
+        self.supports_runtime_memory_commits = self.uses_keyframe_image_inputs
         self.max_keyframe_images = int(self.qwen_memory_injection_config.get("max_keyframe_images", 4))
         self.keyframe_image_position = str(
             self.qwen_memory_injection_config.get(
@@ -202,7 +213,7 @@ class ModelClient:
             keyframe_cluster_timestep_window = self.memory_config.get("keyframe_cluster_timestep_window", 20)
         self.pending_commit_confidence_threshold = float(keyframe_commit_confidence_threshold)
         self.keyframe_cluster_timestep_window = int(keyframe_cluster_timestep_window)
-        self.model_side_event_filter_enabled = True
+        self.model_side_event_filter_enabled = False
         self.last_committed_keyframe_step = None
         self.pending_commit_done = True
         self.committed_keyframe_count = 0
@@ -233,6 +244,26 @@ class ModelClient:
         self.progress_records = []
         atexit.register(self._flush_progress_episode)
 
+    def _connect_client(self) -> WebsocketClientPolicy:
+        if self.client is not None:
+            self.client.close()
+        self.client = WebsocketClientPolicy(self.host, self.port)
+        return self.client
+
+    def _ensure_client(self) -> WebsocketClientPolicy:
+        if self.client is None:
+            return self._connect_client()
+        return self.client
+
+    def _call_server_with_reconnect(self, method_name: str, *args):
+        client = self._ensure_client()
+        try:
+            return getattr(client, method_name)(*args)
+        except (ConnectionClosed, OSError) as e:
+            logging.warning("Websocket %s failed; reconnecting once: %s", method_name, e)
+            client = self._connect_client()
+            return getattr(client, method_name)(*args)
+
     def reset(self, task_description: str) -> None:
         self._flush_progress_episode()
         self.task_description = task_description
@@ -259,7 +290,7 @@ class ModelClient:
         self.prev_action = None
         # Reset server-side memory buffer
         try:
-            self.client.reset_memory()
+            self._call_server_with_reconnect("reset_memory")
         except Exception as e:
             logging.warning(f"Failed to reset server memory: {e}")
 
@@ -333,7 +364,7 @@ class ModelClient:
             if not is_first_plan:
                 self._consume_first_chunk_random_replan()
             self.plan_start_step = int(step)
-            response = self.client.predict_action(vla_input)
+            response = self._call_server_with_reconnect("predict_action", vla_input)
             self._raise_for_server_error(response)
             try:
                 normalized_actions = response["data"]["normalized_actions"]  # B, chunk, D
@@ -648,17 +679,39 @@ class ModelClient:
 
         should_trigger = bool(self._extract_scalar_response_value(response_data, "should_trigger_event", False, bool))
         if not should_trigger:
+            self._clear_pending_commit()
             return
 
         event_offset = self._extract_scalar_response_value(response_data, "pred_event_offset", -1, int)
         if event_offset is None or int(event_offset) < 0:
+            self._clear_pending_commit()
             return
 
         candidate_plan_start_step = int(step)
         candidate_offset = int(event_offset)
+        candidate_commit_step = candidate_plan_start_step + candidate_offset
         candidate_confidence = float(
             self._extract_scalar_response_value(response_data, "pred_event_confidence", 0.0, float)
         )
+        if not (candidate_confidence > float(self.pending_commit_confidence_threshold)):
+            self._clear_pending_commit()
+            return
+
+        if self._is_same_keyframe_cluster(candidate_commit_step, self.last_committed_keyframe_step):
+            self._clear_pending_commit()
+            return
+
+        existing_commit_step = self._pending_commit_step()
+        if self._is_same_keyframe_cluster(candidate_commit_step, existing_commit_step):
+            keep_candidate = (
+                candidate_confidence > float(self.pending_commit_confidence)
+                or (
+                    math.isclose(candidate_confidence, float(self.pending_commit_confidence), rel_tol=0.0, abs_tol=1e-8)
+                    and candidate_commit_step >= int(existing_commit_step)
+                )
+            )
+            if not keep_candidate:
+                return
 
         self.pending_commit_plan_start_step = candidate_plan_start_step
         self.pending_commit_offset = candidate_offset
@@ -685,6 +738,10 @@ class ModelClient:
             return False
 
         commit_step = int(step)
+        if self._is_same_keyframe_cluster(commit_step, self.last_committed_keyframe_step):
+            self._clear_pending_commit()
+            return False
+
         committed = False
         try:
             self._commit_keyframe_image_memory(
@@ -876,7 +933,13 @@ class ModelClient:
                 unnorm_key = next(iter(norm_stats.keys()))
 
         if unnorm_key not in norm_stats:
-            unnorm_key = next(iter(norm_stats.keys()))
+            fallback_key = next(iter(norm_stats.keys()))
+            logging.warning(
+                "unnorm_key=%s is not present in dataset_statistics.json; using %s instead.",
+                unnorm_key,
+                fallback_key,
+            )
+            unnorm_key = fallback_key
 
         return unnorm_key
 

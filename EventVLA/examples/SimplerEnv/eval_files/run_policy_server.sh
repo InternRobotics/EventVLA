@@ -1,12 +1,12 @@
 
 
-cd /mnt/petrelfs/yejinhui/Projects/eventvla
+cd /path/to/EventVLA
 export PYTHONPATH=$(pwd):${PYTHONPATH}
 
 port=6678
 gpu_id=2
 # export DEBUG=true
-export star_vla_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/eventvla/bin/python
+export star_vla_python=/path/to/eventvla/env/bin/python
 
 your_ckpt=./results/Checkpoints/1208_bridge_rt_1_Qwen3PI/final_model/pytorch_model.pt
 

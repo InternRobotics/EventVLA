@@ -10,11 +10,11 @@ export NCCL_TIMEOUT=1000  # timeout set to 1 hour (unit: seconds)
 # === Please modify the following paths according to your environment ===
 Framework_name=EventVLA
 freeze_module_list=''
-base_vlm=${BASE_VLM:-/mnt/inspurfs/efm_t/yangganlin/models/download_models/Qwen3-VL-4B-Instruct}
+base_vlm=${BASE_VLM:-/path/to/Qwen3-VL-4B-Instruct}
 config_yaml=./examples/RoboTwin-Mem/train_files/eventvla_robotwin_mem.yaml
 run_root_dir=./results/Checkpoints
-data_root_dir=${1:-${ROBOTWIN_MEM_DATA_ROOT:-/mnt/inspurfs/efm_t/yangganlin/workspace_tzz/final/RoboTwin-Mem/lerobotdata}}
-data_mix=robotwin_mem8
+data_root_dir=${1:-${ROBOTWIN_MEM_DATA_ROOT:-/path/to/RoboTwin-MeM/lerobot_2.1}}
+data_mix=robotwin_mem
 memory_ablation_mode=pure_image_keyframe_memory
 max_keyframe_images=${MAX_KEYFRAME_IMAGES:-5}
 keep_recent_checkpoints=${KEEP_RECENT_CHECKPOINTS:-2}

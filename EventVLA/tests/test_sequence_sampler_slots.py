@@ -3,6 +3,8 @@ from itertools import pairwise
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 SAMPLER_PATH = Path(__file__).parents[1] / "eventvla" / "dataloader" / "sequence_sampler.py"
 SPEC = importlib.util.spec_from_file_location("eventvla_sequence_sampler_test", SAMPLER_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -39,16 +41,12 @@ def make_sampler(
     )
 
 
-def test_default_mode_preserves_official_flat_batch_layout():
-    sampler = make_sampler(
-        [8, 8, 8, 8],
-        preserve_episode_batch_slots=False,
-    )
-
-    first_batch = next(iter(sampler))
-
-    assert [sample[1] for sample in first_batch] == ["episode-0"] * 4
-    assert [sample[2] for sample in first_batch] == [0, 1, 2, 3]
+def test_rejects_non_persistent_batch_slot_layout():
+    with pytest.raises(ValueError, match="preserve_episode_batch_slots=true"):
+        make_sampler(
+            [8, 8, 8, 8],
+            preserve_episode_batch_slots=False,
+        )
 
 
 def test_persistent_mode_keeps_episode_identity_per_slot():

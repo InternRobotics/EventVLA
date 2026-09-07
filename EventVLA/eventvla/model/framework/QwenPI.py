@@ -213,7 +213,7 @@ if __name__ == "__main__":
     
 
     model = Qwen_PI(cfg)
-    # ckpt="/mnt/petrelfs/yejinhui/Projects/llavavla/results/Checkpoints/1011_qwenpi/checkpoints/need_steps_10000_pytorch_model.pt"
+    # ckpt="/path/to/EventVLA/results/Checkpoints/1011_qwenpi/checkpoints/need_steps_10000_pytorch_model.pt"
     # model = Qwen_PI.from_pretrained(ckpt)
     print(model)
 

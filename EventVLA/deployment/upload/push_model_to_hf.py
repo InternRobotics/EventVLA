@@ -8,5 +8,5 @@ create_repo(hf_name, repo_type="model", exist_ok=True)
 api = HfApi()
 
 # 3. upload large folder
-folder_path = "/mnt/petrelfs/yejinhui/Projects/eventvla/results/Checkpoints/1_need/Qwen3-VL-OFT-LIBERO-4in1"
+folder_path = "/path/to/EventVLA/results/Checkpoints/1_need/Qwen3-VL-OFT-LIBERO-4in1"
 api.upload_large_folder(folder_path=folder_path, repo_id=hf_name, repo_type="model")

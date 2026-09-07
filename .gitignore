@@ -1,0 +1,36 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Local environments and logs
+.env
+.venv/
+env/
+venv/
+*.log
+*.out
+nohup.out
+
+# EventVLA training outputs
+EventVLA/results/
+EventVLA/ckpts/
+EventVLA/debug/
+EventVLA/data/
+EventVLA/examples/**/eval_batch/logs/
+EventVLA/examples/**/eval_files/keyframe/
+
+# RoboTwin-Mem generated data and evaluation outputs
+RoboTwin-Mem/assets/
+RoboTwin-Mem/eval_result/
+RoboTwin-Mem/lerobotdata/
+RoboTwin-Mem/eval_video/
+RoboTwin-Mem/result/
+RoboTwin-Mem/**/checkpoints/

@@ -2,6 +2,8 @@
 
 **EventVLA: Event-Driven Visual Evidence Memory for Long-Horizon Vision-Language-Action Policies**
 
+> News: EventVLA has been accepted to the Conference on Robot Learning (CoRL) 2026.
+
 ## Quick Links
 
 - 🌐 **Project Page**: [EventVLA Project Page](https://ganlin-yang.github.io/EventVLA.github.io/)
@@ -144,6 +146,41 @@ workspace/
 
 Use the RoboTwin-MeM checkpoint for RoboTwin-MeM evaluation and the RMBench checkpoint for RMBench evaluation.
 
+## Path Configuration
+
+Before training or evaluation, replace the example paths with paths on your machine.
+
+For training, set the base Qwen-VL / Qwen3-VL model path and the LeRobot data root:
+
+```bash
+BASE_VLM=/path/to/Qwen3-VL-4B-Instruct
+ROBOTWIN_MEM_DATA_ROOT=/path/to/RoboTwin-MeM/lerobot_2.1
+```
+
+These values are passed to:
+
+```text
+framework.qwenvl.base_vlm
+datasets.vla_data.data_root_dir
+```
+
+For evaluation, set the policy checkpoint, simulator checkout, and Python environments:
+
+```bash
+POLICY_CKPT_PATH=/path/to/checkpoints/EventVLA/RMBench/final_model/pytorch_model.pt
+ROBOTWIN_MEM_ROOT=/path/to/RoboTwin-Mem
+ROBOTWIN_MEM_PYTHON=/path/to/RoboTwin-Mem/env/bin/python
+EVENTVLA_PYTHON=/path/to/eventvla/env/bin/python
+```
+
+Before running inference from a released checkpoint, also check the checkpoint directory's `config.yaml`. If it was produced on another machine, update `framework.qwenvl.base_vlm` to your local Qwen-VL / Qwen3-VL model path:
+
+```yaml
+framework:
+  qwenvl:
+    base_vlm: /path/to/Qwen3-VL-4B-Instruct
+```
+
 ## Evaluation
 
 ### Single-Task Evaluation
@@ -207,6 +244,79 @@ WEIGHT_TASK1="/path/to/checkpoint.pt"
 CKPT_SETTING_TASK1="pure_image_keyframe_memory"
 ```
 
+### RMBench Evaluation
+
+Start an EventVLA policy server:
+
+```bash
+cd /path/to/EventVLA
+
+EVENTVLA_PYTHON=/path/to/eventvla/env/bin/python \
+bash examples/RMBench/eval_files/run_policy_server.sh \
+  /path/to/checkpoints/EventVLA/RMBench/final_model/pytorch_model.pt \
+  0 \
+  5840
+```
+
+Run a single RMBench task:
+
+```bash
+cd /path/to/EventVLA
+
+ROBOTWIN_MEM_ROOT=/path/to/RoboTwin-Mem \
+ROBOTWIN_MEM_PYTHON=/path/to/RoboTwin-Mem/env/bin/python \
+POLICY_CKPT_PATH=/path/to/checkpoints/EventVLA/RMBench/final_model/pytorch_model.pt \
+HOST=127.0.0.1 \
+PORT=5840 \
+UNNORM_KEY=new_embodiment \
+ACTION_MODE=abs \
+MEMORY_ABLATION_MODE=raw_anchors_only \
+bash examples/RMBench/eval_files/eval.sh \
+  battery_try \
+  demo_clean \
+  raw_anchors_only \
+  0 \
+  0
+```
+
+The arguments are:
+
+```text
+bash eval.sh <task_name> <task_config> [ckpt_setting] [seed] [gpu_id]
+```
+
+Run the 9-task RMBench batch evaluation:
+
+```bash
+cd /path/to/EventVLA
+
+bash examples/RMBench/eval_batch/run_batch_eval.sh \
+  examples/RMBench/eval_batch/weights_9tasks_raw_anchors_only_qwen3oft_0423.sh
+```
+
+Before running, edit the weight config file and replace the example checkpoint / Python paths with your own paths:
+
+```bash
+EVENTVLA_PYTHON="/path/to/eventvla/env/bin/python"
+ROBOTWIN_MEM_PYTHON="/path/to/RoboTwin-Mem/env/bin/python"
+ROBOTWIN_MEM_ROOT="/path/to/RoboTwin-Mem"
+RAW_ANCHORS_ONLY_CKPT="/path/to/checkpoints/EventVLA/RMBench/final_model/pytorch_model.pt"
+```
+
+RMBench tasks:
+
+```text
+battery_try
+blocks_ranking_try
+cover_blocks
+observe_and_pickup
+press_button
+put_back_block
+rearrange_blocks
+swap_T
+swap_blocks
+```
+
 ### Evaluation Outputs
 
 Batch evaluation summary:
@@ -243,8 +353,8 @@ examples/RoboTwin-Mem/train_files/
 ```bash
 cd "${EVENTVLA_ROOT}"
 
-BASE_VLM="${BASE_VLM}" \
-ROBOTWIN_MEM_DATA_ROOT="${ROBOTWIN_MEM_DATA_ROOT}" \
+BASE_VLM=/path/to/Qwen3-VL-4B-Instruct \
+ROBOTWIN_MEM_DATA_ROOT=/path/to/RoboTwin-MeM/lerobot_2.1 \
 bash examples/RoboTwin-Mem/train_files/run_eventvla_train.sh
 ```
 
@@ -252,7 +362,7 @@ The data root can also be passed as the first argument:
 
 ```bash
 bash examples/RoboTwin-Mem/train_files/run_eventvla_train.sh \
-  "${ROBOTWIN_MEM_DATA_ROOT}"
+  /path/to/RoboTwin-MeM/lerobot_2.1
 ```
 
 ### SLURM Training
@@ -260,8 +370,8 @@ bash examples/RoboTwin-Mem/train_files/run_eventvla_train.sh \
 ```bash
 cd "${EVENTVLA_ROOT}"
 
-BASE_VLM="${BASE_VLM}" \
-ROBOTWIN_MEM_DATA_ROOT="${ROBOTWIN_MEM_DATA_ROOT}" \
+BASE_VLM=/path/to/Qwen3-VL-4B-Instruct \
+ROBOTWIN_MEM_DATA_ROOT=/path/to/RoboTwin-MeM/lerobot_2.1 \
 sbatch examples/RoboTwin-Mem/train_files/run_eventvla_train_batch.sh
 ```
 
@@ -269,7 +379,7 @@ Alternatively:
 
 ```bash
 sbatch examples/RoboTwin-Mem/train_files/run_eventvla_train_batch.sh \
-  "${ROBOTWIN_MEM_DATA_ROOT}"
+  /path/to/RoboTwin-MeM/lerobot_2.1
 ```
 
 The released RoboTwin-MeM configuration uses:

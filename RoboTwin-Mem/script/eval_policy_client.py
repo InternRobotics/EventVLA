@@ -45,6 +45,18 @@ from typing import Any
 current_file_path = os.path.abspath(__file__)
 parent_directory = os.path.dirname(current_file_path)
 
+
+def prepare_eval_video_output(final_video_path):
+    final_path = Path(final_video_path)
+    tmp_root = Path(os.environ.get("ROBOTWIN_EVAL_VIDEO_TMPDIR", "/tmp/robotwin_eval_video"))
+    tmp_dir = tmp_root / str(os.getpid())
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_name = f"{final_path.parent.name.replace(' ', '_')}_{final_path.name}"
+    tmp_path = tmp_dir / tmp_name
+    if tmp_path.exists():
+        tmp_path.unlink()
+    return tmp_path, final_path
+
 import numpy as np
 import json
 from typing import Any
@@ -429,6 +441,8 @@ def eval_policy(task_name,
         TASK_ENV.set_instruction(instruction=instruction)  # set language instruction
 
         if TASK_ENV.eval_video_path is not None:
+            final_video_path = Path(TASK_ENV.eval_video_path) / f"episode{TASK_ENV.test_num}.mp4"
+            tmp_video_path, final_video_path = prepare_eval_video_output(final_video_path)
             ffmpeg = subprocess.Popen(
                 [
                     "ffmpeg",
@@ -451,11 +465,15 @@ def eval_policy(task_name,
                     "libx264",
                     "-crf",
                     "23",
-                    f"{TASK_ENV.eval_video_path}/episode{TASK_ENV.test_num}.mp4",
+                    str(tmp_video_path),
                 ],
                 stdin=subprocess.PIPE,
             )
-            TASK_ENV._set_eval_video_ffmpeg(ffmpeg)
+            TASK_ENV._set_eval_video_ffmpeg(
+                ffmpeg,
+                tmp_video_path=tmp_video_path,
+                final_video_path=final_video_path,
+            )
 
         succ = False
         model.call(func_name='reset_model')

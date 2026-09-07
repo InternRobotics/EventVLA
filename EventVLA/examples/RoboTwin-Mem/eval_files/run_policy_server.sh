@@ -12,7 +12,9 @@ fi
 
 # Usage:
 #   bash examples/RoboTwin-Mem/eval_files/run_policy_server.sh <ckpt_path> [gpu_id] [port]
-# The checkpoint must be an EventVLA pure_image_keyframe_memory checkpoint.
+# Supported checkpoints:
+#   - EventVLA pure_image_keyframe_memory or raw_anchors_only
+#   - legacy starVLA QwenOFT pure_image_keyframe_memory or raw_anchors_only
 your_ckpt=${1:-${POLICY_CKPT_PATH:-}}
 gpu_id=${2:-${GPU_ID:-1}}
 port=${3:-${PORT:-5840}}

@@ -24,6 +24,7 @@ import numpy as np
 from eventvla.model.tools import auto_get_trainable_modules
 
 from eventvla.model.framework.share_tools import read_mode_config
+from eventvla.model.legacy_compat import normalize_legacy_checkpoint_config
 from eventvla.training.trainer_utils import initialize_overwatch
 from eventvla.model.framework.share_tools import dict_to_namespace
 
@@ -81,6 +82,14 @@ class baseframework(PreTrainedModel):
         """
         pretrained_checkpoint = Path(pretrained_checkpoint)
         model_config, norm_stats = read_mode_config(pretrained_checkpoint)  # read config and norm_stats
+        model_config, compat_info = normalize_legacy_checkpoint_config(model_config)
+        if compat_info.get("enabled", False):
+            logger.info(
+                "Loading legacy %s checkpoint as %s: %s",
+                compat_info.get("source_framework_name"),
+                compat_info.get("target_framework_name"),
+                compat_info.get("reason"),
+            )
 
         config = dict_to_namespace(model_config)
         model_config = config

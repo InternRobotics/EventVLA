@@ -2,6 +2,7 @@ from importlib import import_module
 
 from eventvla.model.tools import FRAMEWORK_REGISTRY
 from eventvla.model.framework.EventVLA import EventVLA
+from eventvla.model.legacy_compat import normalize_legacy_framework_config
 
 
 def _framework_name(cfg):
@@ -22,6 +23,7 @@ def _ensure_optional_framework_registered(name: str) -> None:
 def build_framework(cfg):
     """Build a public EventVLA framework by name."""
 
+    normalize_legacy_framework_config(cfg)
     name = _framework_name(cfg)
     if name == "EventVLA":
         return EventVLA(cfg)

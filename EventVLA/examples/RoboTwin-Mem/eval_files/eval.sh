@@ -183,4 +183,4 @@ PYTHONWARNINGS=ignore::UserWarning \
     --port "${port}" \
     --policy_ckpt_path "${policy_ckpt_path}" \
     --unnorm_key "${unnorm_key}" \
-    --action_mode "${action_mode}"
+    --action_mode "\"${action_mode}\""

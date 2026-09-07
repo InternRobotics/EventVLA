@@ -23,6 +23,7 @@ from pathlib import Path
 import trimesh
 import imageio
 import glob
+import shutil
 
 
 from ._GLOBAL_CONFIGS import *
@@ -594,8 +595,10 @@ class Base_Task(gym.Env):
         self.left_joint_path = args.get("left_joint_path", [])
         self.right_joint_path = args.get("right_joint_path", [])
 
-    def _set_eval_video_ffmpeg(self, ffmpeg):
+    def _set_eval_video_ffmpeg(self, ffmpeg, tmp_video_path=None, final_video_path=None):
         self.eval_video_ffmpeg = ffmpeg
+        self.eval_video_tmp_path = None if tmp_video_path is None else str(tmp_video_path)
+        self.eval_video_final_path = None if final_video_path is None else str(final_video_path)
 
     def close_env(self, clear_cache=False):
         if clear_cache:
@@ -606,9 +609,39 @@ class Base_Task(gym.Env):
 
     def _del_eval_video_ffmpeg(self):
         if self.eval_video_ffmpeg:
-            self.eval_video_ffmpeg.stdin.close()
-            self.eval_video_ffmpeg.wait()
-            del self.eval_video_ffmpeg
+            ffmpeg = self.eval_video_ffmpeg
+            tmp_video_path = getattr(self, "eval_video_tmp_path", None)
+            final_video_path = getattr(self, "eval_video_final_path", None)
+            try:
+                if ffmpeg.stdin:
+                    try:
+                        ffmpeg.stdin.close()
+                    except BrokenPipeError:
+                        pass
+                return_code = ffmpeg.wait()
+                if tmp_video_path and final_video_path:
+                    tmp_path = Path(tmp_video_path)
+                    final_path = Path(final_video_path)
+                    if return_code == 0 and tmp_path.exists() and tmp_path.stat().st_size > 0:
+                        final_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copyfile(tmp_path, final_path)
+                        try:
+                            tmp_path.unlink()
+                        except OSError:
+                            pass
+                    else:
+                        print(
+                            f"[Eval Video Warning] ffmpeg failed or produced no video: "
+                            f"return_code={return_code}, tmp={tmp_path}, final={final_path}"
+                        )
+                elif return_code != 0:
+                    print(f"[Eval Video Warning] ffmpeg exited with return_code={return_code}")
+            finally:
+                del self.eval_video_ffmpeg
+                if hasattr(self, "eval_video_tmp_path"):
+                    del self.eval_video_tmp_path
+                if hasattr(self, "eval_video_final_path"):
+                    del self.eval_video_final_path
 
     def delay(self, delay_time, save_freq=None, language_annotation=None):
         render_freq = self.render_freq

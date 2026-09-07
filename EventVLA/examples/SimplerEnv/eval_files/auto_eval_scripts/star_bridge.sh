@@ -2,10 +2,10 @@
 
 echo `which python`
 # Environment setup
-cd /mnt/petrelfs/yejinhui/Projects/eventvla
-export star_vla_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/eventvla/bin/python
-export sim_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/dinoact/bin/python
-export SimplerEnv_PATH=/mnt/petrelfs/share/yejinhui/Projects/SimplerEnv
+cd /path/to/EventVLA
+export star_vla_python=/path/to/eventvla/env/bin/python
+export sim_python=/path/to/simplerenv/env/bin/python
+export SimplerEnv_PATH=/path/to/SimplerEnv
 export PYTHONPATH=$(pwd):${PYTHONPATH}
 base_port=6350 
 
@@ -13,13 +13,13 @@ base_port=6350
 
 
 MODEL_PATH=$1
-# MODEL_PATH=/mnt/petrelfs/yejinhui/Projects/eventvla/results/Checkpoints/1120_bridge_rt_1_QwenDual_florence/checkpoints/steps_11000_pytorch_model.pt
+# MODEL_PATH=/path/to/EventVLA/results/Checkpoints/1120_bridge_rt_1_QwenDual_florence/checkpoints/steps_11000_pytorch_model.pt
 TSET_NUM=4 # repeat each task 4 times
 run_count=0
 
 if [ -z "$MODEL_PATH" ]; then
   echo "❌ MODEL_PATH not provided as the first argument; using default"
-  export MODEL_PATH="/mnt/petrelfs/yejinhui/Projects/eventvla/results/Checkpoints/1007_qwenLargefm/checkpoints/steps_20000_pytorch_model.pt"
+  export MODEL_PATH="/path/to/EventVLA/results/Checkpoints/1007_qwenLargefm/checkpoints/steps_20000_pytorch_model.pt"
 fi
 
 ckpt_path=${MODEL_PATH}

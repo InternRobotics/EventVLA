@@ -3,10 +3,10 @@
 
 
 # Environment setup
-cd /mnt/petrelfs/yejinhui/Projects/llavavla
-export starvla_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/starvlaSAM/bin/python
-export sim_python=/mnt/petrelfs/share/yejinhui/Envs/miniconda3/envs/dinoact/bin/python
-export SimplerEnv_PATH=/mnt/petrelfs/share/yejinhui/Projects/SimplerEnv
+cd /path/to/EventVLA
+export starvla_python=/path/to/eventvla/env/bin/python
+export sim_python=/path/to/simplerenv/env/bin/python
+export SimplerEnv_PATH=/path/to/SimplerEnv
 export PYTHONPATH=$(pwd):${PYTHONPATH}
 base_port=5500
 
@@ -15,7 +15,7 @@ MODEL_PATH=$1
 # Optional: allow overriding via argument
 if [ -z "$MODEL_PATH" ]; then
   echo "❌ MODEL_PATH not provided as the first argument; using default"
-  export MODEL_PATH="/mnt/petrelfs/yejinhui/Projects/llavavla/results/Checkpoints/1017_QwenOFT/checkpoints/steps_65000_pytorch_model.pt"
+  export MODEL_PATH="/path/to/EventVLA/results/Checkpoints/1017_QwenOFT/checkpoints/steps_65000_pytorch_model.pt"
 fi
 
 export ckpt_path=${MODEL_PATH}

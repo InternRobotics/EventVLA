@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd /mnt/petrelfs/yejinhui/Projects/eventvla
+cd /path/to/EventVLA
 SCRIPT_PATH="./examples/LIBERO/eval_files/auto_eval_scripts/eval_libero_parall.sh"
-your_ckpt=/mnt/petrelfs/yejinhui/Projects/eventvla/results/Checkpoints/1226_libero4in1_qwen3oft/checkpoints/steps_50000_pytorch_model.pt
+your_ckpt=/path/to/EventVLA/results/Checkpoints/1226_libero4in1_qwen3oft/checkpoints/steps_50000_pytorch_model.pt
 run_index_base=346
 
 #####################################################

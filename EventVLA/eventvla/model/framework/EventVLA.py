@@ -40,7 +40,6 @@ IGNORE_INDEX = -100
 class EventVLA(baseframework):
     """Multimodal vision-language-action model."""
 
-    _EVENTVLA_MODE = "pure_image_keyframe_memory"
     _PURE_KEYFRAME_IMAGE_MODES = set(KEYFRAME_IMAGE_MEMORY_MODES)
     _SUPPORTED_MEMORY_INJECTION_MODES = set(CANONICAL_MEMORY_ABLATION_MODES)
 
@@ -102,9 +101,7 @@ class EventVLA(baseframework):
             _cfg_value(injection_cfg, "enabled", _memory_cfg_value("qwen_memory_injection_enabled", True))
         )
         if not self.memory_injection_enabled:
-            raise ValueError(
-                "EventVLA requires keyframe image injection to be enabled."
-            )
+            raise ValueError("EventVLA requires Qwen memory/image injection to be enabled.")
         self.memory_injection_mode = str(
             _cfg_value(
                 injection_cfg,
@@ -181,8 +178,10 @@ class EventVLA(baseframework):
             source="datasets.vla_data.temporal.image",
         )
         logger.info(
-            "EventVLA pure_image_keyframe_memory enabled: temporal anchors absolute_indices=[0], "
-            "delta_indices=[-30, -15, 0], max_keyframe_images=%s.",
+            "EventVLA memory mode=%s enabled: temporal anchors absolute_indices=[0], "
+            "delta_indices=[-30, -15, 0], uses_keyframe_images=%s, max_keyframe_images=%s.",
+            self.memory_injection_mode,
+            self._use_keyframe_image_inputs(),
             self.max_keyframe_images,
         )
 
@@ -212,8 +211,8 @@ class EventVLA(baseframework):
         self.event_commit_threshold = float(_memory_cfg_value("event_commit_threshold", 0.55))
         cluster_window_default = _memory_cfg_value("keyframe_cluster_timestep_window", 20)
         self.enable_keyframe_inference_event_filter = _cfg_bool(
-            _memory_cfg_value("enable_keyframe_inference_event_filter", True),
-            True,
+            _memory_cfg_value("enable_keyframe_inference_event_filter", False),
+            False,
         )
         self.keyframe_nms_window = max(
             0,
@@ -242,7 +241,7 @@ class EventVLA(baseframework):
             False,
         )
         if configured_force_current_write:
-            raise ValueError("EventVLA pure_image_keyframe_memory requires force_memory_write_current_for_event_commit=false.")
+            raise ValueError("EventVLA raw-image modes require force_memory_write_current_for_event_commit=false.")
         self.force_memory_write_current_for_event_commit = False
         self.disable_current_frame_keyframe_write_in_eval = _cfg_bool(
             _memory_cfg_value("disable_current_frame_keyframe_write_in_eval", True),
@@ -253,7 +252,7 @@ class EventVLA(baseframework):
             False,
         )
         if configured_teacher_future_write:
-            raise ValueError("EventVLA pure_image_keyframe_memory requires use_teacher_future_frame_write_in_train=false.")
+            raise ValueError("EventVLA raw-image modes require use_teacher_future_frame_write_in_train=false.")
         self.use_teacher_future_frame_write_in_train = False
         self.keyframe_train_memory_source = str(_memory_cfg_value("keyframe_train_memory_source", "teacher_to_predict")).lower()
         self.keyframe_eval_memory_source = str(_memory_cfg_value("keyframe_eval_memory_source", "predict")).lower()
@@ -571,12 +570,12 @@ class EventVLA(baseframework):
             return qwenvl_outputs.hidden_states[-1]
 
     def _requires_keyframe_image_memory(self) -> bool:
-        return True
+        return self.memory_injection_mode in self._PURE_KEYFRAME_IMAGE_MODES
 
     def _use_keyframe_image_inputs(self) -> bool:
         return (
             self.memory_injection_enabled
-            and self.memory_injection_mode == self._EVENTVLA_MODE
+            and self.memory_injection_mode in self._PURE_KEYFRAME_IMAGE_MODES
         )
 
     @staticmethod
